@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Turf Financial Dashboard</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .main-container {
+            max-width: 800px;
+            margin: 40px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .summary-card,
+        .ai-card {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .summary-card {
+            text-align: center;
+        }
+
+        .chat-window {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .user-msg {
+            align-self: flex-end;
+            background: #e1f3ff;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 80%;
+            white-space: pre-wrap;
+        }
+
+        .ai-msg {
+            align-self: flex-start;
+            background: #dcf8c6;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 80%;
+            white-space: pre-wrap;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .chat-input-row input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        .chat-input-row button {
+            padding: 10px 16px;
+            border-radius: 8px;
+            background: #25d366;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1 style="text-align:center;">🏟️ Turf Financial Dashboard</h1>
+
+<div class="main-container">
+
+    <!-- MONTHLY SUMMARY -->
+    <div class="summary-card">
+        <h2>📊 Monthly Summary</h2>
+        <p><strong>Income:</strong> ₹{{ income }}</p>
+        <p><strong>Expenses:</strong> ₹{{ expense }}</p>
+        <p><strong>Profit:</strong> ₹{{ profit }}</p>
+    </div>
+
+    <!-- AI CHATBOT -->
+    <div class="ai-card">
+        <h3>🤖 AI Financial Assistant</h3>
+
+        <!-- Initial AI Summary -->
+        <div class="chat-window" id="chatWindow">
+            <div class="ai-msg">
+                {{ whatsapp_message }}
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input-row">
+            <input
+                type="text"
+                id="chatInput"
+                placeholder="Ask something like: Why was December profit low?"
+            />
+            <button onclick="sendChatMessage()">Send</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function sendChatMessage() {
+    const input = document.getElementById("chatInput");
+    const chatWindow = document.getElementById("chatWindow");
+    const message = input.value.trim();
+
+    if (!message) {
+        alert("Please enter a question");
+        return;
+    }
+
+    // Show user message
+    const userDiv = document.createElement("div");
+    userDiv.className = "user-msg";
+    userDiv.innerText = message;
+    chatWindow.appendChild(userDiv);
+
+    // Show thinking bubble
+    const thinkingDiv = document.createElement("div");
+    thinkingDiv.className = "ai-msg";
+    thinkingDiv.innerText = "⏳ Thinking...";
+    chatWindow.appendChild(thinkingDiv);
+
+    input.value = "";
+
+    fetch("/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: message })
+    })
+    .then(res => res.json())
+    .then(data => {
+        thinkingDiv.innerText = data.reply;
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    })
+    .catch(() => {
+        thinkingDiv.innerText = "❌ Error getting response";
+    });
+}
+</script>
+
+</body>
+</html>
